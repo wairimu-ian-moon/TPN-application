@@ -7,8 +7,12 @@ const middleware = require("../utils/middleware")
 
 userRouter.get('/', middleware.authenticateToken , async (req, res) => {
     const users = await User.find({}).populate("blogs")
-    console.log(users.blogs)
     res.send(users)
+})
+userRouter.get("/user/:userId", middleware.authenticateToken, async (req, res) => {
+    const {userId} = req.params
+    const user = await User.findById({_id: userId})
+    res.json(user)
 })
 userRouter.post("/", async (req, res) => {
     const {username, email, password} = req.body
@@ -52,7 +56,7 @@ userRouter.post("/login", async (req, res) => {
                 token,
                 username: user.username,
                 role: user.role,
-                userId: user._id
+                userId: user._id,
             }
         })
     }else {
@@ -85,8 +89,8 @@ userRouter.patch("/update/:id/profile", middleware.authenticateToken, async (req
     const user = await User.findOne({_id: id})
     const options = {new: true}
     if (user.role === "user" || "admin") {
-        const {username, email} = req.body
-        const updatedUser = await User.findByIdAndUpdate(id, {username, email, updatedAt: new Date().toLocaleDateString()}, options)
+        const {username, email, image} = req.body
+        const updatedUser = await User.findByIdAndUpdate(id, {username, email, image, updatedAt: new Date().toLocaleDateString()}, options)
         res.status(200).json({
             message: "Successfully updated your details",
             status: "Success",
